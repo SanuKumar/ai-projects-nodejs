@@ -1,17 +1,71 @@
 import { OpenAI } from "openai";
-import dotenv from "dotenv";
+import { encoding_for_model } from "tiktoken";
+import express from "express";
+import { config } from "dotenv";
 
-dotenv.config();
+// Load environment variables
+config();
 
-const openai = new OpenAI(process.env.OPENAI_API_KEY);
+// Create a web server
+const app = express();
+const port = process.env.PORT || 3034;
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+});
+
+// Create an instance of the OpenAI class
+if (!process.env.OPENAI_API_KEY) {
+  throw new Error("OPENAI_API_KEY is not set");
+}
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 const main = async () => {
-  //Define the prompt
-  const prompt = "How big os Singapore?";
+  // Define the prompt
+  const prompt =
+    "I need to start resistance training. Can you create a 7-day detailed workout plan for me to ease into it? Limit it in 100 words or less.";
 
+  // send api request
   const response = await openai.chat.completions.create({
     model: "gpt-3.5-turbo",
-    messages: [{ role: "user", content: prompt }],
+    messages: [
+      {
+        role: "system",
+        content:
+          'You respond with a greeting in the beginning. And you always respond in JSON format, like this: {"greeting": "greeting here", "plan": "plan here"}',
+      },
+      {
+        role: "user",
+        content: prompt,
+      },
+    ],
+    max_tokens: 60,
+    n: 2,
+    frequency_penalty: 1.5,
+    seed: 88888,
   });
-  console.log(response.choices[0].message.content);
+
+  // Print the response
+  // this will be role "assistant" in the response
+  console.log(response.choices[0].message);
+  console.log(response.choices[1].message);
 };
+
+app.get("/ask-me", async (req, res) => {
+  // Call the OpenAI API to generate an answer
+});
+
+const encodePrompt = (prompt) => {
+  // create an encoder for the model
+  const encoder = encoding_for_model("gpt-3.5-turbo");
+  // encode the prompt
+  const tokens = encoder.encode(prompt);
+  console.log(tokens);
+};
+
+encodePrompt(
+  "I need to start resistance training. Can you create a 7-day workout plan for me to ease into it? Limit it in 100 words or less."
+);
+
+main();
