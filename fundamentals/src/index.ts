@@ -1,17 +1,6 @@
 import { OpenAI } from "openai";
 import { encoding_for_model } from "tiktoken";
-import express from "express";
-import { config } from "dotenv";
-
-// Load environment variables
-config();
-
-// Create a web server
-const app = express();
-const port = process.env.PORT || 3034;
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-});
+import "dotenv/config.js";
 
 // Create an instance of the OpenAI class
 if (!process.env.OPENAI_API_KEY) {
@@ -52,11 +41,7 @@ const main = async () => {
   console.log(response.choices[1].message);
 };
 
-app.get("/ask-me", async (req, res) => {
-  // Call the OpenAI API to generate an answer
-});
-
-const encodePrompt = (prompt) => {
+const encodePrompt = (prompt: string) => {
   // create an encoder for the model
   const encoder = encoding_for_model("gpt-3.5-turbo");
   // encode the prompt
